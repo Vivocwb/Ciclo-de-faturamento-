@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ciclo de Faturamento Vivo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0 auto;
+            max-width: 800px;
+            background-color: #f4f4f4;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            color: #660099;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #660099;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #660099;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculadora de Melhor Data de Vencimento</h1>
+    <p>Data de hoje: <span id="current-date"></span></p>
+    <p class="highlight" id="best-vencimento"></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Vencimento</th>
+                <th>Ciclo de Faturamento</th>
+                <th>Primeira Fatura</th>
+                <th>Dias até a Fatura</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+
+    <script>
+        const today = new Date();
+
+        function formatDate(date) {
+            return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+        }
+
+        document.getElementById("current-date").textContent = formatDate(today);
+
+        const billingCycles = [
+            { vencimento: 1, cicloInicio: 16, cicloFim: 15 },
+            { vencimento: 6, cicloInicio: 21, cicloFim: 20 },
+            { vencimento: 10, cicloInicio: 25, cicloFim: 24 },
+            { vencimento: 17, cicloInicio: 2, cicloFim: 1 },
+            { vencimento: 21, cicloInicio: 6, cicloFim: 5 },
+            { vencimento: 26, cicloInicio: 11, cicloFim: 10 }
+        ];
+
+        const tableBody = document.getElementById("table-body");
+        let bestVencimento = null;
+        let maxDays = -1;
+
+        billingCycles.forEach(cycle => {
+            const cicloInicio = new Date(today.getFullYear(), today.getMonth() - (today.getDate() < cycle.cicloInicio ? 1 : 0), cycle.cicloInicio);
+            const cicloFim = new Date(today.getFullYear(), today.getMonth() + (today.getDate() <= cycle.cicloFim ? 0 : 1), cycle.cicloFim);
+            const primeiraFatura = new Date(cicloFim.getFullYear(), cicloFim.getMonth(), cicloFim.getDate() + 16);
+
+            const daysUntilFatura = Math.ceil((primeiraFatura - today) / (1000 * 60 * 60 * 24));
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${cycle.vencimento}</td>
+                <td>${formatDate(cicloInicio)} a ${formatDate(cicloFim)}</td>
+                <td>${formatDate(primeiraFatura)}</td>
+                <td>${daysUntilFatura} dias</td>
+            `;
+            tableBody.appendChild(row);
+
+            if (daysUntilFatura > maxDays) {
+                maxDays = daysUntilFatura;
+                bestVencimento = cycle.vencimento;
+            }
+        });
+
+        document.getElementById("best-vencimento").textContent = 
+            `A melhor data de vencimento é dia ${bestVencimento}, pois a primeira fatura será emitida em ${maxDays} dias.`;
+    </script>
+</body>
+</html>
